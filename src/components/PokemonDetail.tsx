@@ -1,26 +1,24 @@
-import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { usePokemon } from '../hooks/usePokemon'
+import { usePokemonSpecies } from '../hooks/usePokemonSpecies'
+import { useEvolutionChain } from '../hooks/useEvolutionChain'
 import { TypeBadge } from './TypeBadge'
-import { StatBar } from './StatBar'
+import { PokemonTabs } from './PokemonTabs'
 import { getTypeInfo } from '../data/types'
 
-const STAT_CONFIG: Record<string, { label: string; color: string }> = {
-  hp:              { label: 'HP',    color: '#4caf50' },
-  attack:          { label: 'ATK',   color: '#f44336' },
-  defense:         { label: 'DEF',   color: '#2196f3' },
-  'special-attack':{ label: 'S.ATK', color: '#ff9800' },
-  'special-defense':{ label: 'S.DEF',color: '#03a9f4' },
-  speed:           { label: 'SPD',   color: '#9c27b0' },
-}
+const MAX_POKEMON_ID = 1025
 
 export function PokemonDetail() {
   const { id } = useParams<{ id: string }>()
   const index = parseInt(id ?? '0', 10)
   const parsedId = index + 1
+  const isFirstPokemon = parsedId <= 1
+  const isLastPokemon = parsedId >= MAX_POKEMON_ID
 
   const { data: pokemon, isLoading, isError } = usePokemon(parsedId)
+  const { data: species, isLoading: isSpeciesLoading } = usePokemonSpecies(parsedId)
+  const { data: evolution, isLoading: isEvolutionLoading } = useEvolutionChain(species?.evolution_chain.url)
 
   if (isLoading) {
     return (
@@ -52,14 +50,15 @@ export function PokemonDetail() {
         className="relative pt-6 pb-28 flex flex-col items-center overflow-hidden"
         style={{ background: `linear-gradient(180deg, ${bgColor}55 0%, ${bgColor}22 65%, transparent 100%)` }}
       >
-        <div className="absolute inset-0 opacity-5 dark:opacity-10"
+        <div className="pointer-events-none absolute inset-0 opacity-5 dark:opacity-10"
           style={{ backgroundImage: `radial-gradient(circle at 50% 40%, ${bgColor} 0%, transparent 65%)` }}
         />
 
         <div className="relative w-full max-w-3xl mx-auto px-4 flex justify-between items-center mb-4">
           <Link
-            to={parsedId <= 1 ? '#' : `/pokemons/${index - 1}`}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-700 dark:text-gray-200 text-sm font-medium shadow-sm transition hover:bg-white dark:hover:bg-gray-700 ${parsedId <= 1 ? 'opacity-30 pointer-events-none' : ''}`}
+            to={isFirstPokemon ? '#' : `/pokemons/${index - 1}`}
+            aria-disabled={isFirstPokemon}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-700 dark:text-gray-200 text-sm font-medium shadow-sm transition hover:bg-white dark:hover:bg-gray-700 ${isFirstPokemon ? 'opacity-30 pointer-events-none' : ''}`}
           >
             ← Précédent
           </Link>
@@ -67,8 +66,9 @@ export function PokemonDetail() {
             #{String(parsedId).padStart(3, '0')}
           </span>
           <Link
-            to={`/pokemons/${index + 1}`}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-700 dark:text-gray-200 text-sm font-medium shadow-sm transition hover:bg-white dark:hover:bg-gray-700"
+            to={isLastPokemon ? '#' : `/pokemons/${index + 1}`}
+            aria-disabled={isLastPokemon}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-700 dark:text-gray-200 text-sm font-medium shadow-sm transition hover:bg-white dark:hover:bg-gray-700 ${isLastPokemon ? 'opacity-30 pointer-events-none' : ''}`}
           >
             Suivant →
           </Link>
@@ -104,72 +104,15 @@ export function PokemonDetail() {
         />
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-16 pb-16 space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 grid grid-cols-2 gap-6 text-center"
-        >
-          <div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white font-lexend">
-              {(pokemon.height / 10).toFixed(1)} <span className="text-lg font-normal text-gray-400">m</span>
-            </div>
-            <div className="text-sm text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider font-semibold">Taille</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-gray-800 dark:text-white font-lexend">
-              {(pokemon.weight / 10).toFixed(1)} <span className="text-lg font-normal text-gray-400">kg</span>
-            </div>
-            <div className="text-sm text-gray-400 dark:text-gray-500 mt-1 uppercase tracking-wider font-semibold">Poids</div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6"
-        >
-          <h2 className="font-lexend font-semibold text-sm uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4">
-            Capacités
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {pokemon.abilities.map(a => (
-              <span
-                key={a.ability.name}
-                className="px-4 py-2 rounded-full text-sm font-medium capitalize bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
-              >
-                {a.ability.name}
-                {a.is_hidden && <span className="ml-1 text-xs text-gray-400">(cachée)</span>}
-              </span>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6"
-        >
-          <h2 className="font-lexend font-semibold text-sm uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-5">
-            Statistiques de base
-          </h2>
-          <div className="space-y-3.5">
-            {pokemon.stats.map(stat => {
-              const config = STAT_CONFIG[stat.stat.name]
-              return (
-                <StatBar
-                  key={stat.stat.name}
-                  label={config?.label ?? stat.stat.name}
-                  value={stat.base_stat}
-                  color={config?.color ?? bgColor}
-                />
-              )
-            })}
-          </div>
-        </motion.div>
+      <div className="relative z-10 max-w-3xl mx-auto px-4 -mt-16 pb-16">
+        <PokemonTabs
+          pokemon={pokemon}
+          species={species}
+          evolution={evolution}
+          isSpeciesLoading={isSpeciesLoading}
+          isEvolutionLoading={isEvolutionLoading}
+          bgColor={bgColor}
+        />
       </div>
     </div>
   )
