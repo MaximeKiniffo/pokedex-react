@@ -76,6 +76,11 @@ export interface PokemonGenusEntry extends LocalizedTextEntry {
   genus: string
 }
 
+export interface PokemonVariety {
+  is_default: boolean
+  pokemon: NamedResource
+}
+
 export interface PokemonSpecies {
   id: number
   name: string
@@ -94,6 +99,7 @@ export interface PokemonSpecies {
   is_baby: boolean
   is_legendary: boolean
   is_mythical: boolean
+  varieties: PokemonVariety[]
 }
 
 export interface EvolutionDetail {

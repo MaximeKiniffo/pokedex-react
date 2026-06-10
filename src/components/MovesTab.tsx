@@ -168,9 +168,6 @@ export function MovesTab({ pokemon }: Props) {
           <h2 className="font-lexend text-sm font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
             Scarlet / Violet
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {total} attaques dans {LATEST_MAINLINE_MOVE_VERSION_GROUP}
-          </p>
         </div>
       </div>
 

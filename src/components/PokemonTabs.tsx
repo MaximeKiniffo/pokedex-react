@@ -6,8 +6,9 @@ import { StatBar } from './StatBar'
 import { AboutTab } from './AboutTab'
 import { MovesTab } from './MovesTab'
 import { EvolutionTab } from './EvolutionTab'
+import { FormsTab } from './FormsTab'
 
-type TabId = 'about' | 'stats' | 'moves' | 'evolution'
+type TabId = 'about' | 'stats' | 'moves' | 'evolution' | 'forms'
 
 interface Props {
   pokemon: Pokemon
@@ -23,6 +24,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'stats', label: 'Stats' },
   { id: 'moves', label: 'Attaques' },
   { id: 'evolution', label: 'Evolution' },
+  { id: 'forms', label: 'Formes' },
 ]
 
 const STAT_CONFIG: Record<string, { label: string; color: string }> = {
@@ -102,7 +104,7 @@ export function PokemonTabs({
       transition={{ delay: 0.2 }}
       className="rounded-2xl bg-white p-4 shadow-lg dark:bg-gray-800 sm:p-6"
     >
-      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-100 p-1 dark:bg-gray-900/70 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-100 p-1 dark:bg-gray-900/70 sm:grid-cols-3 lg:grid-cols-5">
         {TABS.map(tab => {
           const isActive = activeTab === tab.id
           return (
@@ -131,6 +133,7 @@ export function PokemonTabs({
         {activeTab === 'evolution' && (
           <EvolutionTab evolution={evolution} isLoading={isEvolutionLoading} />
         )}
+        {activeTab === 'forms' && <FormsTab species={species} bgColor={bgColor} />}
       </div>
     </motion.div>
   )
